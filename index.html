@@ -1,1 +1,21 @@
-<!DOCTYPE html><html><head><title>Img</title></head><body style="background:black;color:lime;font-family:monospace;padding:40px;text-align:center;"><h1>🖼️ Image Link</h1><input id=i placeholder="https://image.url.here" style="width:90%;max-width:500px;padding:20px;font-size:18px;background:#111;color:lime;border:2px solid lime;margin:20px 0;"><button onclick=g style="padding:20px 40px;font-size:20px;background:lime;color:black;border:none;font-weight:bold;">GENERATE LINK</button><div id=r style="display:none;margin-top:30px;"><textarea id=l rows=3 style="width:90%;max-width:500px;background:#111;color:lime;border:2px solid lime;font-family:monospace;padding:10px;font-size:16px;" readonly></textarea><button onclick=c style="padding:15px 30px;background:lime;color:black;border:none;font-weight:bold;margin-top:10px;">COPY</button></div><script>function g(){let u=document.getElementById('i').value;if(!u)return alert('Enter image URL');let e=location.origin+'/v.html?u='+btoa(u);document.getElementById('l').value=e;document.getElementById('r').style.display='block';document.getElementById('l').select();}function c(){document.getElementById('l').select();document.execCommand('copy');alert('Copied to clipboard!');}</script></body></html>
+<script>
+function g(){
+  let u = document.getElementById('i').value;
+  if(!u) {
+    alert('Enter image URL first!');
+    return;
+  }
+  let e = location.origin + '/v.html?u=' + btoa(u);
+  document.getElementById('l').value = e;
+  document.getElementById('r').style.display = 'block';
+  document.getElementById('l').select();
+  document.getElementById('l').focus();
+}
+function c(){
+  let txt = document.getElementById('l');
+  txt.select();
+  txt.setSelectionRange(0, 99999);
+  navigator.clipboard.writeText(txt.value);
+  alert('✅ Link copied!');
+}
+</script>
