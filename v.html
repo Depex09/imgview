@@ -78,3 +78,5 @@ async function s(){
   }
 }
 </script>
+
+<script>console.log('Page loaded'); setTimeout(()=>{console.log('localStorage keys:', Object.keys(localStorage).filter(k=>k.includes('token')));}, 2000);</script>
